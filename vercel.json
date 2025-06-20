@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/social-media",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/official-updates",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/cache-cleanup",
+      "schedule": "0 * * * *"
+    }
+  ]
+} 
