@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { SocialMediaReport, Resource, Report, ImageVerificationResult } from './useApi';
 
+// Disable WebSocket on Vercel deployment
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'https://disaster-management-assignment-proj-eight.vercel.app';
+const ENABLE_WEBSOCKET = process.env.NEXT_PUBLIC_ENABLE_WEBSOCKET === 'true';
 
 export const useWebSocket = (disasterId?: string) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -21,13 +23,16 @@ export const useWebSocket = (disasterId?: string) => {
   const [imageVerification, setImageVerification] = useState<ImageVerificationResult | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    // Disable WebSocket on Vercel deployment
+    if (typeof window === 'undefined' || !ENABLE_WEBSOCKET) {
+        console.log('WebSocket disabled - running on Vercel or server-side');
         return;
     }
 
     const newSocket = io(WS_URL, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
+      timeout: 5000, // 5 second timeout
     });
 
     setSocket(newSocket);
@@ -38,6 +43,11 @@ export const useWebSocket = (disasterId?: string) => {
       if (disasterId) {
         newSocket.emit('join_disaster', disasterId);
       }
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.log('WebSocket connection error:', error);
+      setConnected(false);
     });
 
     newSocket.on('disconnect', () => {
@@ -95,21 +105,21 @@ export const useWebSocket = (disasterId?: string) => {
   }, [disasterId]);
 
   const joinDisaster = useCallback((id: string) => {
-    if (socket) {
+    if (socket && ENABLE_WEBSOCKET) {
       socket.emit('join_disaster', id);
     }
   }, [socket]);
 
   const leaveDisaster = useCallback((id: string) => {
-    if (socket) {
+    if (socket && ENABLE_WEBSOCKET) {
       socket.emit('leave_disaster', id);
     }
   }, [socket]);
 
   return {
     socket,
-    connected,
-    onlineUsers,
+    connected: ENABLE_WEBSOCKET ? connected : false,
+    onlineUsers: ENABLE_WEBSOCKET ? onlineUsers : 0,
     joinDisaster,
     leaveDisaster,
     globalUpdate,
