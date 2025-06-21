@@ -70,7 +70,7 @@ export interface OfficialUpdatePost {
   severity: string;
   category: string;
 }
-
+ 
 export interface OfficialUpdate {
   updates: OfficialUpdatePost[];
   total: number;
