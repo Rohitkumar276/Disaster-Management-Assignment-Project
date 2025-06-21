@@ -136,8 +136,8 @@ cache: Performance optimization cache
    ```
 
 6. **Access the Application**
-   - Frontend: http://localhost:3000
-   - WebSocket Server: http://localhost:3001
+   - Frontend: https://disaster-management-assignment-proj-eight.vercel.app/
+   - WebSocket Server: https://disaster-management-assignment-proj-eight.vercel.app/
 
 ## 📖 Usage Guide
 

@@ -7,7 +7,7 @@ const PORT = process.env.SOCKET_PORT || 3001;
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "https://disaster-management-assignment-proj-eight.vercel.app",
     methods: ["GET", "POST"]
   }
 });

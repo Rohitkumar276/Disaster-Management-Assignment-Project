@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { logger } from './utils/logger';
 
-const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL || 'http://localhost:3001';
+const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL || 'https://disaster-management-assignment-proj-eight.vercel.app';
 
 /**
  * Emits a real-time event to the WebSocket server.
