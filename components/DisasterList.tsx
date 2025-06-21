@@ -178,7 +178,7 @@ export const DisasterList: React.FC<DisasterListProps> = ({
                   <div className="flex items-center space-x-3 mb-3">
                     <h3 className="text-xl font-semibold text-gray-900">{disaster.title}</h3>
                     <div className="flex space-x-2">
-                      {disaster.tags.slice(0, 3).map((tag) => (
+                      {disaster.tags.slice(0, 3).map((tag: string) => (
                         <span
                           key={tag}
                           className={`px-3 py-1 rounded-full text-sm font-medium ${getTagColor(tag)}`}

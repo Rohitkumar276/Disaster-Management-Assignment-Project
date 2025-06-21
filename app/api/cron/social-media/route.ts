@@ -8,7 +8,7 @@ export const revalidate = 0;
 
 // TODO: Replace with a proper real-time solution (e.g., Supabase Realtime)
 // This function would be responsible for sending updates to clients
-const sendRealtimeUpdate = (disasterId, data) => {
+const sendRealtimeUpdate = (disasterId: string, data: any) => {
   // io.to(`disaster_${disasterId}`).emit('social_media_updated', data);
   logger.info(`Real-time update for disaster ${disasterId} (not sent)`);
 };

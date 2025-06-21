@@ -7,7 +7,7 @@ import { emitRealtimeEvent } from '@/lib/realtime';
 export const revalidate = 0;
 
 // TODO: Replace with a proper real-time solution
-const sendRealtimeUpdate = (disasterId, data) => {
+const sendRealtimeUpdate = (disasterId: string, data: any) => {
   // io.to(`disaster_${disasterId}`).emit('official_updates_refreshed', data);
   logger.info(`Real-time update for disaster ${disasterId} (not sent)`);
 };
