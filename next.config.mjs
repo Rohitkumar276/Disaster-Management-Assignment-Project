@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Add any Next.js configuration options here
+  output: 'standalone',
+  experimental: {
+    outputFileTracingRoot: undefined,
+  },
+  // Ensure proper port binding for Railway
+  env: {
+    PORT: process.env.PORT || '3000',
+  },
 };
 
 export default nextConfig; 

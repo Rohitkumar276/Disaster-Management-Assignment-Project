@@ -8,7 +8,8 @@
     "dev:next": "next dev",
     "dev:socket": "node socket-server.js",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p $PORT",
+    "start:railway": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "start:socket": "node socket-server.js"
   },
