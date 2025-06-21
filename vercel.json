@@ -2,15 +2,15 @@
   "crons": [
     {
       "path": "/api/cron/social-media",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/api/cron/official-updates",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/cache-cleanup",
-      "schedule": "0 * * * *"
+      "schedule": "0 18 * * *"
     }
   ]
 } 
