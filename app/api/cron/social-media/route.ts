@@ -17,7 +17,7 @@ export async function GET() {
         logger.info('Starting social media monitoring...');
         
         // Get all active disasters
-        const { data: disasters, error: disastersError } = await supabase
+        const { data: disasters, error: disastersError } = await supabase 
             .from('disasters')
             .select('id, title, location, tags')
             .eq('status', 'active');
