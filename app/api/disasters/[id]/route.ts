@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
+import { geocodeLocation } from '@/lib/services/geocoding';
 
 export const dynamic = "force-dynamic";
 
