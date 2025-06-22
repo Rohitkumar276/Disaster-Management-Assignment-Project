@@ -4,14 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm-run-all --parallel dev:next dev:socket",
-    "dev:next": "next dev",
-    "dev:socket": "node socket-server.js",
+    "dev": "next dev",
     "build": "next build",
-    "start": "node server.js",
-    "start:railway": "node server.js",
-    "lint": "next lint",
-    "start:socket": "node socket-server.js"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
@@ -29,8 +25,6 @@
     "react": "^18",
     "react-dom": "^18",
     "sharp": "^0.33.4",
-    "socket.io": "^4.7.4",
-    "socket.io-client": "^4.7.4",
     "winston": "^3.11.0"
   },
   "devDependencies": {

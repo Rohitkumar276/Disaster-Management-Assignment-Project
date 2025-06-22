@@ -111,10 +111,6 @@ cache: Performance optimization cache
    # Google Gemini AI (Optional)
    GEMINI_API_KEY=your_gemini_api_key
 
-   # WebSocket Configuration
-   SOCKET_PORT=3001
-   FRONTEND_URL=http://localhost:3000
-
    # Geocoding API (Optional)
    GEOCODING_API_KEY=your_geocoding_api_key
    ```
@@ -136,8 +132,8 @@ cache: Performance optimization cache
    ```
 
 6. **Access the Application**
-   - Frontend: https://disaster-management-assignment-proj-eight.vercel.app/
-   - WebSocket Server: https://disaster-management-assignment-proj-eight.vercel.app/
+   - Frontend: http://localhost:3000
+   - WebSocket Server: http://localhost:3001
 
 ## 📖 Usage Guide
 

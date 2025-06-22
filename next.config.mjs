@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Ensure proper port binding for Railway
+  // Environment configuration for local development
   env: {
     PORT: process.env.PORT || '3000',
+  },
+  // Enable experimental features if needed
+  experimental: {
+    // Add any experimental features here
   },
 };
 

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useApi, Disaster, Report, Resource, SocialMediaReport, OfficialUpdate } from '../hooks/useApi';
-import { useWebSocket } from '../hooks/useWebSocket';
 import { Loader, AlertTriangle, ArrowLeft, FileText, Ambulance, MessageSquare, Megaphone, Edit, Trash2 } from 'lucide-react';
 
 interface DisasterDetailProps {
@@ -32,7 +31,7 @@ export const DisasterDetail: React.FC<DisasterDetailProps> = ({ disasterId, onBa
     getOfficialUpdates 
   } = useApi();
   
-  const { connected } = useWebSocket(disasterId);
+  const connected = false;
 
   useEffect(() => {
     const fetchDisasterData = async () => {

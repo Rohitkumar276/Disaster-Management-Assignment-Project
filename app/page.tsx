@@ -7,7 +7,6 @@ import { DisasterForm } from '@/components/DisasterForm';
 import { DisasterList } from '@/components/DisasterList';
 import { DisasterDetail } from '@/components/DisasterDetail';
 import { useApi, Disaster } from '@/hooks/useApi';
-import { useWebSocket } from '@/hooks/useWebSocket';
 
 type View = 'dashboard' | 'list' | 'form' | 'detail';
 
@@ -18,7 +17,7 @@ export default function HomePage() {
   const [disasterToEdit, setDisasterToEdit] = useState<Disaster | null>(null);
 
   const { disasters, loading, error, refreshDisasters, deleteDisaster } = useApi();
-  const { globalUpdate } = useWebSocket();
+  const globalUpdate = null;
 
   useEffect(() => {
     // Check for admin user in localStorage
