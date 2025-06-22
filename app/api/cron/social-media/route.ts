@@ -39,19 +39,26 @@ export async function GET() {
             try {
                 logger.debug(`Monitoring social media for disaster: ${disaster.title} (${disaster.id})`);
                 
-                const reports = await fetchSocialMediaReports(disaster.location, disaster.title, disaster.tags);
+                // Create keywords from disaster title, location, and tags
+                const keywords = [
+                    disaster.title,
+                    disaster.location,
+                    ...(disaster.tags || [])
+                ].filter(Boolean);
                 
-                if (reports.length > 0) {
+                const reports = await fetchSocialMediaReports(disaster.id, keywords);
+                
+                if (reports.posts && reports.posts.length > 0) {
                     // await emitRealtimeEvent('social_media_updated', `disaster_${disaster.id}`, reports);
-                    logger.debug(`Social media reports found for disaster ${disaster.id}: ${reports.length} reports`);
-                    totalReports += reports.length;
+                    logger.debug(`Social media reports found for disaster ${disaster.id}: ${reports.posts.length} reports`);
+                    totalReports += reports.posts.length;
                     
                     // Store reports in database
                     const { error: insertError } = await supabase
                         .from('social_media_reports')
                         .insert({
                             disaster_id: disaster.id,
-                            reports: reports,
+                            reports: reports.posts,
                             fetched_at: new Date().toISOString()
                         });
                         
@@ -62,7 +69,7 @@ export async function GET() {
                     results.push({
                         disaster_id: disaster.id,
                         disaster_title: disaster.title,
-                        reports_count: reports.length
+                        reports_count: reports.posts.length
                     });
                 }
             } catch (error: any) {

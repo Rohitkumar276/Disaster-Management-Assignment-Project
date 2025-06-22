@@ -38,9 +38,11 @@ export async function GET() {
             try {
                 logger.debug(`Fetching official updates for disaster: ${disaster.title} (${disaster.id})`);
                 
-                const updates = await fetchOfficialUpdates(disaster.location, disaster.title);
+                // Use default sources for official updates
+                const sources = ['fema', 'redcross', 'nyc'];
+                const updates = await fetchOfficialUpdates(disaster.id, sources);
                 
-                if (updates.updates.length > 0) {
+                if (updates.updates && updates.updates.length > 0) {
                     // await emitRealtimeEvent('official_updates_refreshed', `disaster_${disaster.id}`, updates);
                     logger.debug(`Official updates refreshed for disaster ${disaster.id}: ${updates.updates.length} updates`);
                     totalUpdates += updates.updates.length;
@@ -51,7 +53,7 @@ export async function GET() {
                         .insert({
                             disaster_id: disaster.id,
                             updates: updates.updates,
-                            source: updates.source,
+                            source: updates.sources.join(', '),
                             fetched_at: new Date().toISOString()
                         });
                         
@@ -63,7 +65,7 @@ export async function GET() {
                         disaster_id: disaster.id,
                         disaster_title: disaster.title,
                         updates_count: updates.updates.length,
-                        source: updates.source
+                        source: updates.sources.join(', ')
                     });
                 }
             } catch (error: any) {
