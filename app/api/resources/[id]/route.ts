@@ -2,9 +2,10 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
 import { geocodeLocation } from '@/lib/services/geocoding';
-import { emitRealtimeEvent } from '@/lib/realtime';
 
 const VALID_STATUSES = ['active', 'inactive', 'maintenance', 'exhausted'];
+
+export const dynamic = "force-dynamic";
 
 // PUT (update) a resource by ID
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -55,11 +56,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         if (error) throw error;
         if (!data) return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
         
-        logger.info(`Resource updated: ${id}`);
-        
-        // Emit a real-time event
-        await emitRealtimeEvent('resources_updated', `disaster_${data.disaster_id}`, { action: 'update', resource: data });
-        await emitRealtimeEvent('resources_updated', 'global_resources', { action: 'update', resource: data });
+        logger.info(`Resource ${id} updated successfully`);
         
         return NextResponse.json(data);
     } catch (error: any) {
@@ -93,13 +90,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         
         if (error) throw error;
         
-        logger.info(`Resource deleted: ${id}`);
+        logger.info(`Resource ${id} deleted successfully`);
         
-        // Emit a real-time event
-        await emitRealtimeEvent('resources_updated', `disaster_${existing.disaster_id}`, { action: 'delete', resourceId: id });
-        await emitRealtimeEvent('resources_updated', 'global', { action: 'delete', resourceId: id, disasterId: existing.disaster_id });
-        
-        return NextResponse.json({ message: 'Resource deleted successfully' });
+        return NextResponse.json({ message: `Resource ${id} deleted` });
     } catch (error: any) {
         logger.error(`Delete resource ${params.id} error:`, error);
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { fetchSocialMediaReports } from '@/lib/services/socialMedia';
 import { supabase } from '@/lib/config/supabase';
-import { emitRealtimeEvent } from '@/lib/realtime';
 
 export const revalidate = 0;
 
@@ -14,45 +13,79 @@ const sendRealtimeUpdate = (disasterId: string, data: any) => {
 };
 
 export async function GET() {
-  logger.info('Running scheduled social media update...');
-
-  try {
-    const { data: disasters, error } = await supabase
-      .from('disasters')
-      .select('id, tags')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (error) {
-      throw error;
-    }
-
-    if (!disasters || disasters.length === 0) {
-      logger.info('No active disasters to update.');
-      return NextResponse.json({ message: 'No active disasters to update.' });
-    }
-
-    let totalReports = 0;
-    for (const disaster of disasters) {
-      try {
-        const reports = await fetchSocialMediaReports(disaster.id, disaster.tags);
+    try {
+        logger.info('Starting social media monitoring...');
         
-        if (reports.posts.length > 0) {
-          await emitRealtimeEvent('social_media_updated', `disaster_${disaster.id}`, reports);
-          logger.debug(`Social media updated for disaster ${disaster.id}: ${reports.posts.length} posts`);
-          totalReports += reports.posts.length;
+        // Get all active disasters
+        const { data: disasters, error: disastersError } = await supabase
+            .from('disasters')
+            .select('id, title, location, tags')
+            .eq('status', 'active');
+            
+        if (disastersError) {
+            logger.error('Error fetching disasters:', disastersError);
+            return NextResponse.json({ error: 'Failed to fetch disasters' }, { status: 500 });
         }
-      } catch (disasterError) {
-        logger.error(`Error processing disaster ${disaster.id} for social media updates:`, disasterError);
-      }
+        
+        if (!disasters || disasters.length === 0) {
+            logger.info('No active disasters found');
+            return NextResponse.json({ message: 'No active disasters to monitor' });
+        }
+        
+        let totalReports = 0;
+        const results = [];
+        
+        for (const disaster of disasters) {
+            try {
+                logger.debug(`Monitoring social media for disaster: ${disaster.title} (${disaster.id})`);
+                
+                const reports = await fetchSocialMediaReports(disaster.location, disaster.title, disaster.tags);
+                
+                if (reports.length > 0) {
+                    // await emitRealtimeEvent('social_media_updated', `disaster_${disaster.id}`, reports);
+                    logger.debug(`Social media reports found for disaster ${disaster.id}: ${reports.length} reports`);
+                    totalReports += reports.length;
+                    
+                    // Store reports in database
+                    const { error: insertError } = await supabase
+                        .from('social_media_reports')
+                        .insert({
+                            disaster_id: disaster.id,
+                            reports: reports,
+                            fetched_at: new Date().toISOString()
+                        });
+                        
+                    if (insertError) {
+                        logger.error(`Error storing social media reports for disaster ${disaster.id}:`, insertError);
+                    }
+                    
+                    results.push({
+                        disaster_id: disaster.id,
+                        disaster_title: disaster.title,
+                        reports_count: reports.length
+                    });
+                }
+            } catch (error: any) {
+                logger.error(`Error processing disaster ${disaster.id}:`, error.message);
+                results.push({
+                    disaster_id: disaster.id,
+                    disaster_title: disaster.title,
+                    error: error.message
+                });
+            }
+        }
+        
+        logger.info(`Social media monitoring completed. Total reports: ${totalReports}`);
+        
+        return NextResponse.json({
+            message: 'Social media monitoring completed successfully',
+            total_reports: totalReports,
+            disasters_processed: disasters.length,
+            results
+        });
+        
+    } catch (error: any) {
+        logger.error('Social media monitoring error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    
-    const message = `Scheduled social media update completed. Found ${totalReports} new reports across ${disasters.length} disasters.`;
-    logger.info(message);
-    return NextResponse.json({ message });
-
-  } catch (error) {
-    logger.error('Scheduled social media update failed:', error);
-    return NextResponse.json({ error: 'Failed to update social media reports' }, { status: 500 });
-  }
 } 

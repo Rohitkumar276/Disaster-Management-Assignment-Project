@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
 import { verifyImage } from '@/lib/services/gemini';
-import { emitRealtimeEvent } from '@/lib/realtime';
+
+export const dynamic = "force-dynamic";
 
 // POST a new report for a specific disaster
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -59,9 +60,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         if (error) throw error;
         
         logger.info(`Report created: ${data.id} for disaster ${disasterId}`);
-        
-        // Emit a real-time event
-        await emitRealtimeEvent('report_created', `disaster_${disasterId}`, data);
         
         return NextResponse.json(data, { status: 201 });
     } catch (error: any) {

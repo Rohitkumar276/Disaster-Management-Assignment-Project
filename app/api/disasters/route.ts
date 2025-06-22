@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
-import { emitRealtimeEvent } from '@/lib/realtime';
 import { geocodeLocation } from '@/lib/services/geocoding';
 
 export async function GET(request: NextRequest) {
@@ -113,9 +112,6 @@ export async function POST(request: NextRequest) {
         }
         
         logger.info(`Disaster created by admin ${user.username}: ${data.id}`);
-        
-        // Emit a real-time event
-        await emitRealtimeEvent('disasters_updated', 'global_disasters', { action: 'create', disaster: data });
         
         return NextResponse.json(data, { status: 201 });
     } catch (error: any) {

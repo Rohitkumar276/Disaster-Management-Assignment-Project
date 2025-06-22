@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { fetchOfficialUpdates } from '@/lib/services/officialUpdates';
 import { supabase } from '@/lib/config/supabase';
-import { emitRealtimeEvent } from '@/lib/realtime';
 
 export const revalidate = 0;
 
@@ -13,45 +12,81 @@ const sendRealtimeUpdate = (disasterId: string, data: any) => {
 };
 
 export async function GET() {
-  logger.info('Running scheduled official updates...');
-  
-  try {
-    const { data: disasters, error } = await supabase
-      .from('disasters')
-      .select('id')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (error) {
-      throw error;
-    }
-
-    if (!disasters || disasters.length === 0) {
-      logger.info('No active disasters to fetch official updates for.');
-      return NextResponse.json({ message: 'No active disasters.' });
-    }
-
-    let totalUpdates = 0;
-    for (const disaster of disasters) {
-      try {
-        const updates = await fetchOfficialUpdates(disaster.id);
-
-        if (updates.updates.length > 0) {
-          await emitRealtimeEvent('official_updates_refreshed', `disaster_${disaster.id}`, updates);
-          logger.debug(`Official updates refreshed for disaster ${disaster.id}: ${updates.updates.length} updates`);
-          totalUpdates += updates.updates.length;
+    try {
+        logger.info('Starting official updates refresh...');
+        
+        // Get all active disasters
+        const { data: disasters, error: disastersError } = await supabase
+            .from('disasters')
+            .select('id, title, location')
+            .eq('status', 'active');
+            
+        if (disastersError) {
+            logger.error('Error fetching disasters:', disastersError);
+            return NextResponse.json({ error: 'Failed to fetch disasters' }, { status: 500 });
         }
-      } catch (disasterError) {
-        logger.error(`Error processing disaster ${disaster.id} for official updates:`, disasterError);
-      }
+        
+        if (!disasters || disasters.length === 0) {
+            logger.info('No active disasters found');
+            return NextResponse.json({ message: 'No active disasters to update' });
+        }
+        
+        let totalUpdates = 0;
+        const results = [];
+        
+        for (const disaster of disasters) {
+            try {
+                logger.debug(`Fetching official updates for disaster: ${disaster.title} (${disaster.id})`);
+                
+                const updates = await fetchOfficialUpdates(disaster.location, disaster.title);
+                
+                if (updates.updates.length > 0) {
+                    // await emitRealtimeEvent('official_updates_refreshed', `disaster_${disaster.id}`, updates);
+                    logger.debug(`Official updates refreshed for disaster ${disaster.id}: ${updates.updates.length} updates`);
+                    totalUpdates += updates.updates.length;
+                    
+                    // Store updates in database
+                    const { error: insertError } = await supabase
+                        .from('official_updates')
+                        .insert({
+                            disaster_id: disaster.id,
+                            updates: updates.updates,
+                            source: updates.source,
+                            fetched_at: new Date().toISOString()
+                        });
+                        
+                    if (insertError) {
+                        logger.error(`Error storing updates for disaster ${disaster.id}:`, insertError);
+                    }
+                    
+                    results.push({
+                        disaster_id: disaster.id,
+                        disaster_title: disaster.title,
+                        updates_count: updates.updates.length,
+                        source: updates.source
+                    });
+                }
+            } catch (error: any) {
+                logger.error(`Error processing disaster ${disaster.id}:`, error.message);
+                results.push({
+                    disaster_id: disaster.id,
+                    disaster_title: disaster.title,
+                    error: error.message
+                });
+            }
+        }
+        
+        logger.info(`Official updates refresh completed. Total updates: ${totalUpdates}`);
+        
+        return NextResponse.json({
+            message: 'Official updates refreshed successfully',
+            total_updates: totalUpdates,
+            disasters_processed: disasters.length,
+            results
+        });
+        
+    } catch (error: any) {
+        logger.error('Official updates refresh error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    const message = `Scheduled official updates completed. Found ${totalUpdates} new updates across ${disasters.length} disasters.`;
-    logger.info(message);
-    return NextResponse.json({ message });
-
-  } catch (error) {
-    logger.error('Scheduled official updates failed:', error);
-    return NextResponse.json({ error: 'Failed to fetch official updates' }, { status: 500 });
-  }
 } 

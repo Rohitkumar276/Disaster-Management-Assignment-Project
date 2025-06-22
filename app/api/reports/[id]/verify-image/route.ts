@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
 import { verifyImage } from '@/lib/services/gemini';
-import { emitRealtimeEvent } from '@/lib/realtime';
+
+export const dynamic = "force-dynamic";
 
 // POST to verify an image for a specific report
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -33,12 +34,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         
         if (error) throw error;
         
-        logger.info(`Image verified for report ${reportId}: ${verification.authentic}`);
+        logger.info(`Image verification completed for report ${reportId}`);
         
-        // Emit a real-time event
-        await emitRealtimeEvent('report_verified', `disaster_${report.disaster_id}`, { report: data, verification });
-        
-        return NextResponse.json({ verification, report: data });
+        return NextResponse.json({ verification });
     } catch (error: any) {
         logger.error(`Verify image for report ${params.id} error:`, error);
         return NextResponse.json({ error: error.message }, { status: 500 });

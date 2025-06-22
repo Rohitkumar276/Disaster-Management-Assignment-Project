@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
 import { geocodeLocation } from '@/lib/services/geocoding';
-import { emitRealtimeEvent } from '@/lib/realtime';
+
+export const dynamic = "force-dynamic";
 
 // POST a new resource for a specific disaster
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -46,9 +47,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         if (error) throw error;
         
         logger.info(`Resource created: ${data.id} for disaster ${disaster_id}`);
-        
-        // Emit a real-time event
-        await emitRealtimeEvent('resources_updated', `disaster_${disaster_id}`, { action: 'create', resource: data });
         
         return NextResponse.json(data, { status: 201 });
     } catch (error: any) {

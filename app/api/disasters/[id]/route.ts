@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/config/supabase';
 import { logger } from '@/lib/utils/logger';
-import { emitRealtimeEvent } from '@/lib/realtime';
-import { geocodeLocation } from '@/lib/services/geocoding';
+
+export const dynamic = "force-dynamic";
 
 // GET a single disaster by ID
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -100,10 +100,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         
         logger.info(`Disaster ${id} updated successfully`);
         
-        // Emit a real-time event
-        await emitRealtimeEvent('disasters_updated', `disaster_${id}`, { action: 'update', disaster: data });
-        await emitRealtimeEvent('disasters_updated', 'global_disasters', { action: 'update', disaster: data });
-
         return NextResponse.json(data);
     } catch (error: any) {
         logger.error(`Update disaster ${params.id} API error:`, { message: error.message });
@@ -142,10 +138,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         if (error) throw error;
 
         logger.info(`Disaster ${id} deleted successfully`);
-
-        // Emit a real-time event
-        await emitRealtimeEvent('disasters_updated', `disaster_${id}`, { action: 'delete', disasterId: id });
-        await emitRealtimeEvent('disasters_updated', 'global_disasters', { action: 'delete', disasterId: id });
 
         return NextResponse.json({ message: `Disaster ${id} deleted` });
     } catch (error: any) {
